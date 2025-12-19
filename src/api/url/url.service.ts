@@ -14,7 +14,7 @@ export class UrlService {
   async createShortUrl(body: CreateUrlDto) {
     const originalUrl = prepareUrl(body.url)
     const existing = await this.findByOriginalUrl(originalUrl)
-    if (existing) this.toResponse(existing)
+    if (existing) return this.toResponse(existing)
 
     const shortUrl = await this.generateUniqueShortUrl()
 
