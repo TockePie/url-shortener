@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common'
-import type { Response } from 'express'
+import { Body, Controller, Get, Param, Post, Redirect } from '@nestjs/common'
 
 import { CreateUrlDto } from './dto/create-url.dto'
 import { UrlService } from './url.service'
@@ -9,10 +8,11 @@ export class UrlController {
   constructor(private urlService: UrlService) {}
 
   @Get('/:id')
-  async redirectFromUrl(@Res() res: Response, @Param('id') id: string) {
-    const redirectUrl = await this.urlService.redirectFromUrl(id)
+  @Redirect()
+  async redirectFromUrl(@Param('id') id: string) {
+    const url = await this.urlService.redirectFromUrl(id)
 
-    res.redirect(redirectUrl)
+    return { url }
   }
 
   @Post('/shorten')
