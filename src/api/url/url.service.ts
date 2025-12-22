@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DeepPartial, Repository } from 'typeorm'
 
@@ -9,7 +10,10 @@ import { Url } from './url.entity'
 
 @Injectable()
 export class UrlService {
-  constructor(@InjectRepository(Url) private repo: Repository<Url>) {}
+  constructor(
+    @InjectRepository(Url) private repo: Repository<Url>,
+    private configService: ConfigService
+  ) {}
 
   async createShortUrl(body: CreateUrlDto) {
     const originalUrl = prepareUrl(body.url)
@@ -24,8 +28,19 @@ export class UrlService {
     return this.toResponse(entity)
   }
 
+  async redirectFromUrl(shortUrl: Url['shortUrl']) {
+    const url = await this.findByShortUrl(shortUrl)
+    if (!url) throw new NotFoundException('Url not found')
+
+    return url.originalUrl
+  }
+
   private async findByOriginalUrl(originalUrl: string): Promise<Url | null> {
     return this.repo.findOne({ where: { originalUrl } })
+  }
+
+  private async findByShortUrl(shortUrl: string) {
+    return this.repo.findOne({ where: { shortUrl } })
   }
 
   private async generateUniqueShortUrl() {
@@ -45,7 +60,14 @@ export class UrlService {
   private toResponse(url: Url): DeepPartial<Url> {
     return {
       originalUrl: url.originalUrl,
-      shortUrl: url.shortUrl
+      shortUrl: this.prepareShortUrl(url.shortUrl)
     }
+  }
+
+  private prepareShortUrl(shortUrl: string) {
+    const webUrl = this.configService.get<string>('WEBSITE_URL')
+    if (!webUrl) return shortUrl
+
+    return `${webUrl}/${shortUrl}`
   }
 }
