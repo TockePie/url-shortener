@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
+import chalk from 'chalk'
 
 import { AppModule } from './app.module'
 
@@ -13,7 +14,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }))
 
   await app.listen(port, () => {
-    console.log(`The server is running on: http://localhost:${port}`)
+    console.log(
+      chalk.bgGreen.black(`The server is running on: http://localhost:${port}`)
+    )
   })
 }
 bootstrap()
