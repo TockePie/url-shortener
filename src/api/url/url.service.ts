@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Cache } from '@nestjs/cache-manager'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DeepPartial, Repository } from 'typeorm'
@@ -12,7 +13,8 @@ import { Url } from './url.entity'
 export class UrlService {
   constructor(
     @InjectRepository(Url) private repo: Repository<Url>,
-    private configService: ConfigService
+    private configService: ConfigService,
+    @Inject('CACHE_MANAGER') private cacheManager: Cache
   ) {}
 
   async createShortUrl(body: CreateUrlDto) {
@@ -28,9 +30,14 @@ export class UrlService {
     return this.toResponse(entity)
   }
 
-  async redirectFromUrl(shortUrl: Url['shortUrl']) {
+  async redirectFromUrl(shortUrl: Url['shortUrl']): Promise<string> {
+    const cache = await this.cacheManager.get(shortUrl)
+    if (cache) return cache as unknown as string
+
     const url = await this.findByShortUrl(shortUrl)
     if (!url) throw new NotFoundException('Url not found')
+
+    await this.cacheManager.set(shortUrl, url.originalUrl)
 
     return url.originalUrl
   }
