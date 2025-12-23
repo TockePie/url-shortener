@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
+import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
 import { UrlController } from './url.controller'
 import { Url } from './url.entity'
 import { UrlService } from './url.service'
@@ -19,6 +20,6 @@ import { UrlService } from './url.service'
     TypeOrmModule.forFeature([Url])
   ],
   controllers: [UrlController],
-  providers: [UrlService]
+  providers: [UrlService, LoggerInterceptor]
 })
 export class UrlModule {}

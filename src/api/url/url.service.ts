@@ -42,7 +42,7 @@ export class UrlService {
     return url.originalUrl
   }
 
-  private async findByOriginalUrl(originalUrl: string): Promise<Url | null> {
+  private async findByOriginalUrl(originalUrl: string) {
     return this.repo.findOne({ where: { originalUrl } })
   }
 

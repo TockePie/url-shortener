@@ -1,8 +1,18 @@
-import { Body, Controller, Get, Param, Post, Redirect } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Redirect,
+  UseInterceptors
+} from '@nestjs/common'
 
+import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
 import { CreateUrlDto } from './dto/create-url.dto'
 import { UrlService } from './url.service'
 
+@UseInterceptors(LoggerInterceptor)
 @Controller()
 export class UrlController {
   constructor(private urlService: UrlService) {}
