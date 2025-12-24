@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'
 
 import { Url } from '../api/url/url.entity'
+import { User } from '../api/users/user.entity'
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
@@ -24,7 +25,8 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     return {
       type: isProd ? 'postgres' : 'sqlite',
       ...(isProd ? PG_CONFIG : SQLITE_CONFIG),
-      entities: [Url],
+      /* TODO: use separate file for defining entities */
+      entities: [Url, User],
       synchronize: !isProd
     }
   }

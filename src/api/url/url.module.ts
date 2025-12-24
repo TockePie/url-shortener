@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
+import { AuthModule } from '../auth/auth.module'
 import { UrlController } from './url.controller'
 import { Url } from './url.entity'
 import { UrlService } from './url.service'
@@ -17,7 +18,8 @@ import { UrlService } from './url.service'
       }),
       inject: [ConfigService]
     }),
-    TypeOrmModule.forFeature([Url])
+    TypeOrmModule.forFeature([Url]),
+    AuthModule
   ],
   controllers: [UrlController],
   providers: [UrlService, LoggerInterceptor]

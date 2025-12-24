@@ -5,10 +5,12 @@ import {
   Param,
   Post,
   Redirect,
+  UseGuards,
   UseInterceptors
 } from '@nestjs/common'
 
 import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
+import { AuthGuard } from '../auth/auth.guard'
 import { CreateUrlDto } from './dto/create-url.dto'
 import { UrlService } from './url.service'
 
@@ -25,6 +27,10 @@ export class UrlController {
     return { url }
   }
 
+  /*TODO: Make possibility to create a short URLs to users
+  without authorization for 24h. Implement rate limiting 
+  */
+  @UseGuards(AuthGuard)
   @Post('/shorten')
   createShortUrl(@Body() body: CreateUrlDto) {
     return this.urlService.createShortUrl(body)
