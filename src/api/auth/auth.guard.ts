@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CanActivate,
   ExecutionContext,
@@ -9,9 +6,8 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { Request } from 'express'
+import { JwtPayload, RequestWithUser } from 'src/types/auth'
 
-/* TODO: fix types */
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -20,16 +16,16 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest<RequestWithUser>()
     const token = this.extractTokenFromCookie(request)
     if (!token) throw new UnauthorizedException()
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
         secret: this.configService.get<string>('JWT_SECRET')
       })
 
-      request['user'] = payload
+      request.user = payload
     } catch {
       throw new UnauthorizedException()
     }
@@ -37,7 +33,7 @@ export class AuthGuard implements CanActivate {
     return true
   }
 
-  private extractTokenFromCookie(request: Request): string | undefined {
+  private extractTokenFromCookie(request: RequestWithUser): string | undefined {
     return request.cookies?.['access_token']
   }
 }
