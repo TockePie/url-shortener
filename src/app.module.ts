@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { AuthModule } from './api/auth/auth.module'
+import { RateLimitModule } from './api/rate-limit/rate-limit.module'
 import { UrlModule } from './api/url/url.module'
 import { UsersModule } from './api/users/users.module'
 import { TypeOrmConfigService } from './config/typeorm.config.service'
@@ -17,7 +18,8 @@ import { TypeOrmConfigService } from './config/typeorm.config.service'
       useClass: TypeOrmConfigService
     }),
     UrlModule,
-    UsersModule
+    UsersModule,
+    RateLimitModule
   ]
 })
 export class AppModule {}

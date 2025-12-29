@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
 import { AuthModule } from '../auth/auth.module'
+import { RateLimitModule } from '../rate-limit/rate-limit.module'
 import { UrlController } from './url.controller'
 import { Url } from './url.entity'
 import { UrlService } from './url.service'
@@ -19,7 +20,8 @@ import { UrlService } from './url.service'
       inject: [ConfigService]
     }),
     TypeOrmModule.forFeature([Url]),
-    AuthModule
+    AuthModule,
+    RateLimitModule
   ],
   controllers: [UrlController],
   providers: [UrlService, LoggerInterceptor]

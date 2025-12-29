@@ -1,11 +1,19 @@
 import { Cache } from '@nestjs/cache-manager'
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
+import { CreatorInfo } from 'src/types/auth'
 import { DeepPartial, Repository } from 'typeorm'
 
 import generateShortCode from '../../utils/generate-short-code'
 import prepareUrl from '../../utils/prepare-url'
+import { RateLimitService } from '../rate-limit/rate-limit.service'
 import { CreateUrlDto } from './dto/create-url.dto'
 import { Url } from './url.entity'
 
@@ -14,10 +22,20 @@ export class UrlService {
   constructor(
     @InjectRepository(Url) private repo: Repository<Url>,
     private configService: ConfigService,
+    private rateLimitService: RateLimitService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache
   ) {}
 
-  async createShortUrl(body: CreateUrlDto) {
+  async createShortUrl(body: CreateUrlDto, creator: CreatorInfo) {
+    const isAllowed = await this.rateLimitService.isAllowed(
+      creator.userId ?? creator.ip ?? 'unknown',
+      creator.userId ? 20 : 5,
+      'create_url'
+    )
+    if (!isAllowed) {
+      throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS)
+    }
+
     const originalUrl = prepareUrl(body.url)
     const existing = await this.findByOriginalUrl(originalUrl)
     if (existing) return this.toResponse(existing)
