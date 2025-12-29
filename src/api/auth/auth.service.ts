@@ -16,13 +16,17 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async signIn(username: string, pass: string) {
+  async validateUser(username: string, pass: string) {
     const user = await this.usersService.findOne(username)
-    if (!user) throw new NotFoundException()
+    if (!user) throw new NotFoundException('User not found')
 
     const hash = await bcrypt.compare(pass, user.password)
-    if (!hash) throw new UnauthorizedException()
+    if (!hash) throw new UnauthorizedException("Password doesn't match")
 
+    return user
+  }
+
+  async logIn(user: User) {
     return await this.getToken(user)
   }
 

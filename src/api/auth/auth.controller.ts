@@ -21,10 +21,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: SignInDto
   ) {
-    const { access_token } = await this.authService.signIn(
+    const userBody = await this.authService.validateUser(
       body.username,
       body.password
     )
+    const { access_token } = await this.authService.logIn(userBody)
 
     res.cookie('access_token', access_token, {
       httpOnly: true,
