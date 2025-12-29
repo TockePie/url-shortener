@@ -29,9 +29,6 @@ export class UrlController {
     return { url }
   }
 
-  /*TODO: Make possibility to create a short URLs to users
-  without authorization for 24h. Implement rate limiting 
-  */
   @UseGuards(OptionalAuthGuard)
   @Post('/shorten')
   createShortUrl(@Body() body: CreateUrlDto, @Creator() creator: CreatorInfo) {

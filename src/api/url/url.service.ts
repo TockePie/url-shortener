@@ -42,7 +42,11 @@ export class UrlService {
 
     const shortUrl = await this.generateUniqueShortUrl()
 
-    const entity = this.repo.create({ originalUrl, shortUrl })
+    const entity = this.repo.create({
+      originalUrl,
+      shortUrl,
+      userId: creator.userId
+    })
     await this.repo.save(entity)
 
     return this.toResponse(entity)

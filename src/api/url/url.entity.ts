@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn
 } from 'typeorm'
@@ -14,7 +15,11 @@ export class Url {
   id: string
 
   @ManyToOne(() => User, (user) => user.urls)
+  @JoinColumn({ name: 'userId' })
   user: User
+
+  @Column({ nullable: true })
+  userId: string | null
 
   @Column({ unique: true })
   originalUrl: string
