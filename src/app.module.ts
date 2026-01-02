@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { ScheduleModule } from '@nestjs/schedule'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { AuthModule } from './api/auth/auth.module'
@@ -21,7 +22,8 @@ import { TypeOrmConfigService } from './config/typeorm.config.service'
     }),
     UrlModule,
     UsersModule,
-    RateLimitModule
+    RateLimitModule,
+    ScheduleModule.forRoot()
   ]
 })
 export class AppModule {}

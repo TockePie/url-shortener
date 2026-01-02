@@ -7,10 +7,11 @@ import {
   NotFoundException
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
-import { CreatorInfo } from 'src/types/auth'
 import { DeepPartial, Repository } from 'typeorm'
 
+import { CreatorInfo } from '../../types/auth'
 import generateShortCode from '../../utils/generate-short-code'
 import prepareUrl from '../../utils/prepare-url'
 import { RateLimitService } from '../rate-limit/rate-limit.service'
@@ -21,9 +22,9 @@ import { Url } from './url.entity'
 export class UrlService {
   constructor(
     @InjectRepository(Url) private repo: Repository<Url>,
+    @Inject('CACHE_MANAGER') private cacheManager: Cache,
     private configService: ConfigService,
-    private rateLimitService: RateLimitService,
-    @Inject('CACHE_MANAGER') private cacheManager: Cache
+    private rateLimitService: RateLimitService
   ) {}
 
   async createShortUrl(body: CreateUrlDto, creator: CreatorInfo) {
@@ -62,6 +63,13 @@ export class UrlService {
     await this.cacheManager.set(shortUrl, url.originalUrl)
 
     return url.originalUrl
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: 'fetch-database'
+  })
+  async fetchAllUrl() {
+    return this.repo.find()
   }
 
   private async findByOriginalUrl(originalUrl: string) {
