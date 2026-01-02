@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt'
 
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
+import { AuthDto } from './dto/auth.dto'
 
 @Injectable()
 export class AuthService {
@@ -16,11 +17,11 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async validateUser(username: string, pass: string) {
+  async validateUser({ username, password }: AuthDto) {
     const user = await this.usersService.findOne(username)
     if (!user) throw new NotFoundException('User not found')
 
-    const hash = await bcrypt.compare(pass, user.password)
+    const hash = await bcrypt.compare(password, user.password)
     if (!hash) throw new UnauthorizedException("Password doesn't match")
 
     return user
@@ -30,7 +31,7 @@ export class AuthService {
     return await this.getToken(user)
   }
 
-  async signUp(username: string, password: string) {
+  async signUp({ username, password }: AuthDto) {
     const user = await this.usersService.create(username, password)
 
     return await this.getToken(user)

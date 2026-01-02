@@ -1,6 +1,13 @@
 import { Logger } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator'
+import {
+  IsEnum,
+  IsNumber,
+  IsString,
+  Max,
+  Min,
+  validateSync
+} from 'class-validator'
 
 enum Environment {
   Development = 'development',
@@ -31,10 +38,18 @@ class EnvironmentVariables {
   DB_NAME: string
 
   @IsString()
-  JWT_SECRET: string
+  WEBSITE_URL: string
+
+  @IsNumber()
+  CACHE_TTL: number = 300000
+
+  @IsNumber()
+  @Min(1)
+  @Max(20)
+  BCRYPT_HASH_ROUNDS: number = 10
 
   @IsString()
-  WEBSITE_URL: string
+  JWT_SECRET: string
 }
 
 const NAME = 'EnvironmentValidator'

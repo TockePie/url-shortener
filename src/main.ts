@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import cookieParser from 'cookie-parser'
 
 import { AppModule } from './app.module'
+import { TypeOrmExceptionFilter } from './config/typeorm.exception'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -13,6 +14,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') ?? 3000
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }))
+  app.useGlobalFilters(new TypeOrmExceptionFilter())
   app.use(cookieParser())
 
   await app.listen(port, () => {

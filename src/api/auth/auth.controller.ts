@@ -9,22 +9,19 @@ import {
 import type { Response } from 'express'
 
 import { AuthService } from './auth.service'
-import { SignInDto } from './dto/sign-in.dto'
+import { AuthDto } from './dto/auth.dto'
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(
+  @HttpCode(HttpStatus.OK)
+  async logIn(
     @Res({ passthrough: true }) res: Response,
-    @Body() body: SignInDto
+    @Body() body: AuthDto
   ) {
-    const userBody = await this.authService.validateUser(
-      body.username,
-      body.password
-    )
+    const userBody = await this.authService.validateUser(body)
     const { access_token } = await this.authService.logIn(userBody)
 
     res.cookie('access_token', access_token, {
@@ -35,23 +32,19 @@ export class AuthController {
     res.send('Login Successful!')
   }
 
-  @HttpCode(HttpStatus.OK)
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   logOut(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token')
-
-    return 'Logged out successfully'
+    res.send('Logged out successfully')
   }
 
   @Post('signup')
   async signUp(
     @Res({ passthrough: true }) res: Response,
-    @Body() body: SignInDto
+    @Body() body: AuthDto
   ) {
-    const { access_token } = await this.authService.signUp(
-      body.username,
-      body.password
-    )
+    const { access_token } = await this.authService.signUp(body)
 
     res.cookie('access_token', access_token, {
       httpOnly: true,
