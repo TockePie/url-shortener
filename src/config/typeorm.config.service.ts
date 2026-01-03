@@ -7,23 +7,21 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private config: ConfigService) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    const isProd = this.config.get('NODE_ENV') === 'production'
-
-    const PG_CONFIG = {
+    return {
+      type: 'postgres',
       host: this.config.get<string>('DB_HOST'),
       port: this.config.get<number>('DB_PORT'),
       username: this.config.get<string>('DB_USER'),
       password: this.config.get<string>('DB_PASS'),
-      database: this.config.get<string>('DB_NAME')
-    }
-
-    const SQLITE_CONFIG = { database: 'db.sqlite' }
-
-    return {
-      type: isProd ? 'postgres' : 'sqlite',
-      ...(isProd ? PG_CONFIG : SQLITE_CONFIG),
+      database: this.config.get<string>('DB_NAME'),
+      // entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
-      synchronize: !isProd
+      migrations: [__dirname + '/../migrations/**/*{.ts,.js}'],
+      migrationsTableName: 'migrations',
+      migrationsRun: false,
+      retryAttempts: 3,
+      retryDelay: 5000,
+      synchronize: false
     }
   }
 }

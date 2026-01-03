@@ -32,7 +32,6 @@ export class UrlController {
   @UseGuards(OptionalAuthGuard)
   @Post('/shorten')
   createShortUrl(@Body() body: CreateUrlDto, @Creator() creator: CreatorInfo) {
-    console.log(creator)
     return this.urlService.createShortUrl(body, creator)
   }
 }

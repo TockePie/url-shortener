@@ -27,7 +27,7 @@ export class Url {
   @Column({ unique: true })
   shortUrl: string
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date | null
 
   @CreateDateColumn()
