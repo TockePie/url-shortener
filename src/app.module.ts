@@ -12,7 +12,6 @@ import { TypeOrmConfigService } from './config/typeorm.config.service'
 
 @Module({
   imports: [
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validate
@@ -20,6 +19,7 @@ import { TypeOrmConfigService } from './config/typeorm.config.service'
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService
     }),
+    AuthModule,
     UrlModule,
     UsersModule,
     RateLimitModule,

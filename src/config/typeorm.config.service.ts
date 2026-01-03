@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'
 
+import { RateLimit } from '../api/rate-limit/rate-limit.entity'
+import { Url } from '../api/url/url.entity'
+import { User } from '../api/users/user.entity'
+
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private config: ConfigService) {}
@@ -14,8 +18,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       username: this.config.get<string>('DB_USER'),
       password: this.config.get<string>('DB_PASS'),
       database: this.config.get<string>('DB_NAME'),
-      // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      autoLoadEntities: true,
+      entities: [User, Url, RateLimit],
       migrations: [__dirname + '/../migrations/**/*{.ts,.js}'],
       migrationsTableName: 'migrations',
       migrationsRun: false,
