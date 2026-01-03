@@ -30,8 +30,7 @@ export class UrlService {
   async createShortUrl(body: CreateUrlDto, creator: CreatorInfo) {
     const isAllowed = await this.rateLimitService.isAllowed(
       creator.userId ?? creator.ip ?? 'unknown',
-      creator.userId ? 20 : 5,
-      'create_url'
+      creator.userId ? 20 : 5
     )
     if (!isAllowed) {
       throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS)
@@ -42,13 +41,22 @@ export class UrlService {
     if (existing) return this.toResponse(existing)
 
     const shortUrl = await this.generateUniqueShortUrl()
+    const expiresAt = creator.userId ? null : new Date()
+    if (expiresAt) {
+      expiresAt.setDate(expiresAt.getDate() + 1)
+    }
 
     const entity = this.repo.create({
       originalUrl,
       shortUrl,
-      userId: creator.userId
+      userId: creator.userId,
+      expiresAt
     })
     await this.repo.save(entity)
+    await this.rateLimitService.createRecord(
+      creator.userId ?? creator.ip ?? 'unknown',
+      'create_url'
+    )
 
     return this.toResponse(entity)
   }
@@ -97,7 +105,8 @@ export class UrlService {
   private toResponse(url: Url): DeepPartial<Url> {
     return {
       originalUrl: url.originalUrl,
-      shortUrl: this.prepareShortUrl(url.shortUrl)
+      shortUrl: this.prepareShortUrl(url.shortUrl),
+      expiresAt: url.expiresAt
     }
   }
 

@@ -12,7 +12,7 @@ export class RateLimitService {
     @InjectRepository(RateLimit) private repo: Repository<RateLimit>
   ) {}
 
-  async isAllowed(targetId: string, limit: number, endpoint: string) {
+  async isAllowed(targetId: string, limit: number) {
     const currentTime = new Date()
     const lastHour = new Date(currentTime.getTime() - ONE_HOUR)
 
@@ -27,7 +27,12 @@ export class RateLimitService {
       return false
     }
 
-    await this.repo.save({ targetId, endpoint })
     return true
+  }
+
+  async createRecord(targetId: string, endpoint: string) {
+    const record = this.repo.create({ targetId, endpoint })
+
+    return await this.repo.save(record)
   }
 }
