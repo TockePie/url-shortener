@@ -41,10 +41,10 @@ export class UrlService {
     if (existing) return this.toResponse(existing)
 
     const shortUrl = await this.generateUniqueShortUrl()
-    const expiresAt = creator.userId ? null : new Date()
-    if (expiresAt) {
-      expiresAt.setDate(expiresAt.getDate() + 1)
-    }
+
+    const expiresAt = creator.userId
+      ? null
+      : () => "CURRENT_TIMESTAMP + INTERVAL '1 day'"
 
     const entity = this.repo.create({
       originalUrl,
@@ -68,6 +68,11 @@ export class UrlService {
     const url = await this.findByShortUrl(shortUrl)
     if (!url) throw new NotFoundException('Url not found')
 
+    const date = await this.fetchCurrentTimestamp()
+    if (url.expiresAt && url.expiresAt < date) {
+      throw new NotFoundException('This URL has expired.')
+    }
+
     await this.cacheManager.set(shortUrl, url.originalUrl)
 
     return url.originalUrl
@@ -78,6 +83,13 @@ export class UrlService {
   })
   async fetchAllUrl() {
     return this.repo.find()
+  }
+
+  private async fetchCurrentTimestamp() {
+    const date: { now: Date }[] = await this.repo.query(
+      'SELECT CURRENT_TIMESTAMP as now'
+    )
+    return date[0].now
   }
 
   private async findByOriginalUrl(originalUrl: string) {
