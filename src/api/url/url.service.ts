@@ -28,13 +28,7 @@ export class UrlService {
   ) {}
 
   async createShortUrl(body: CreateUrlDto, creator: CreatorInfo) {
-    const isAllowed = await this.rateLimitService.isAllowed(
-      creator.userId ?? creator.ip ?? 'unknown',
-      creator.userId ? 20 : 5
-    )
-    if (!isAllowed) {
-      throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS)
-    }
+    await this.checkRateLimit(creator)
 
     const originalUrl = prepareUrl(body.url)
     const existing = await this.findByOriginalUrl(originalUrl)
@@ -46,19 +40,19 @@ export class UrlService {
       ? null
       : () => "CURRENT_TIMESTAMP + INTERVAL '1 day'"
 
-    const entity = this.repo.create({
+    const newUrl = this.repo.create({
       originalUrl,
       shortUrl,
       userId: creator.userId,
       expiresAt
     })
-    await this.repo.save(entity)
+    await this.repo.save(newUrl)
     await this.rateLimitService.createRecord(
       creator.userId ?? creator.ip ?? 'unknown',
       'create_url'
     )
 
-    return this.toResponse(entity)
+    return this.toResponse(newUrl)
   }
 
   async redirectFromUrl(shortUrl: Url['shortUrl']): Promise<string> {
@@ -68,8 +62,8 @@ export class UrlService {
     const url = await this.findByShortUrl(shortUrl)
     if (!url) throw new NotFoundException('Url not found')
 
-    const date = await this.fetchCurrentTimestamp()
-    if (url.expiresAt && url.expiresAt < date) {
+    const dbTimestamp = await this.fetchCurrentTimestamp()
+    if (url.expiresAt && url.expiresAt < dbTimestamp) {
       throw new NotFoundException('This URL has expired.')
     }
 
@@ -81,23 +75,31 @@ export class UrlService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'fetch-database'
   })
-  async fetchAllUrl() {
+  async fetchAllUrls() {
     return this.repo.find()
   }
 
-  private async fetchCurrentTimestamp() {
-    const date: { now: Date }[] = await this.repo.query(
-      'SELECT CURRENT_TIMESTAMP as now'
+  private async checkRateLimit(creator: CreatorInfo) {
+    const isAllowed = await this.rateLimitService.isAllowed(
+      creator.userId ?? creator.ip ?? 'unknown',
+      creator.userId ? 20 : 5
     )
-    return date[0].now
+
+    if (!isAllowed) {
+      throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS)
+    }
   }
 
   private async findByOriginalUrl(originalUrl: string) {
     return this.repo.findOne({ where: { originalUrl } })
   }
 
-  private async findByShortUrl(shortUrl: string) {
-    return this.repo.findOne({ where: { shortUrl } })
+  private toResponse(url: Url): DeepPartial<Url> {
+    return {
+      originalUrl: url.originalUrl,
+      shortUrl: this.prepareShortUrl(url.shortUrl),
+      expiresAt: url.expiresAt
+    }
   }
 
   private async generateUniqueShortUrl() {
@@ -114,12 +116,15 @@ export class UrlService {
     return shortUrl
   }
 
-  private toResponse(url: Url): DeepPartial<Url> {
-    return {
-      originalUrl: url.originalUrl,
-      shortUrl: this.prepareShortUrl(url.shortUrl),
-      expiresAt: url.expiresAt
-    }
+  private async findByShortUrl(shortUrl: string) {
+    return this.repo.findOne({ where: { shortUrl } })
+  }
+
+  private async fetchCurrentTimestamp() {
+    const date: { now: Date }[] = await this.repo.query(
+      'SELECT CURRENT_TIMESTAMP as now'
+    )
+    return date[0].now
   }
 
   private prepareShortUrl(shortUrl: string) {

@@ -23,7 +23,7 @@ export class RateLimitService {
       }
     })
 
-    if (count > limit) {
+    if (count >= limit) {
       return false
     }
 

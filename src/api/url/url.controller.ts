@@ -21,10 +21,10 @@ import { UrlService } from './url.service'
 export class UrlController {
   constructor(private urlService: UrlService) {}
 
-  @Get('/:id')
+  @Get('/:code')
   @Redirect()
-  async redirectFromUrl(@Param('id') id: string) {
-    const url = await this.urlService.redirectFromUrl(id)
+  async redirectFromUrl(@Param('code') code: string) {
+    const url = await this.urlService.redirectFromUrl(code)
 
     return { url }
   }
