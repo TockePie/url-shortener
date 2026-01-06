@@ -14,7 +14,9 @@ import { validate } from './config/env.validation'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate
+      validate,
+      envFilePath:
+        process.env.NODE_ENV === 'development' ? '.env.local' : '.env'
     }),
     // TypeOrmModule.forRootAsync({
     //   useClass: TypeOrmConfigService
