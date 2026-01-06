@@ -10,7 +10,7 @@ const configService = new ConfigService()
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  url: configService.getOrThrow<string>('POSTGRES_URL'),
+  url: configService.getOrThrow<string>('DB_URL'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
