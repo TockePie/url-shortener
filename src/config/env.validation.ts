@@ -17,25 +17,13 @@ enum Environment {
 
 class EnvironmentVariables {
   @IsEnum(Environment)
-  NODE_ENV
+  NODE_ENV: Environment
 
   @IsNumber()
   PORT: number = 3000
 
   @IsString()
-  POSTGRES_HOST: string
-
-  @IsNumber()
-  DB_PORT: number
-
-  @IsString()
-  POSTGRES_USER: string
-
-  @IsString()
-  POSTGRES_PASSWORD: string
-
-  @IsString()
-  POSTGRES_DATABASE: string
+  POSTGRES_URL: string
 
   @IsString()
   WEBSITE_URL: string
