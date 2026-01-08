@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/swagger(.*)",
+      "dest": "src/main.ts"
+    },
+    {
       "src": "/(.*)",
       "dest": "src/main.ts",
       "methods": ["GET", "POST"]
