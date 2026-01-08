@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Redirect,
+  Res,
   UseGuards,
   UseInterceptors
 } from '@nestjs/common'
@@ -20,6 +21,7 @@ import {
   ApiParam,
   ApiSecurity
 } from '@nestjs/swagger'
+import type { Response } from 'express'
 
 import { Creator } from '../../config/decorators/create.decorator'
 import { LoggerInterceptor } from '../../config/interceptors/logger.interceptor'
@@ -33,6 +35,39 @@ import { UrlService } from './url.service'
 @UseInterceptors(LoggerInterceptor)
 export class UrlController {
   constructor(private urlService: UrlService) {}
+
+  @Get()
+  getMainMessage(@Res() res: Response) {
+    res.set('Content-Type', 'text/html')
+    res.send(`<!doctype html>
+<html>
+  <head>
+    <title>URL Shortener</title>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body>
+    <div class="m-3">
+      <h1 class="text-2xl font-bold">URL Shortener</h1>
+      <h3>
+        Хілоу, на жаль тут нічого не має. Подивіться краще ні мій
+        GitHub-профіль:
+        <a href="https://shu-gamma.vercel.app/qxmC89z" class="text-blue-500"
+          >https://shu-gamma.vercel.app/qxmC89z</a
+        >
+        або спробуйте створити посилання власноруч
+        <a
+          href="https://shu-gamma.vercel.app/swagger#/Url/UrlController_createShortUrl"
+          class="text-blue-500"
+          >https://shu-gamma.vercel.app/swagger#/Url/UrlController_createShortUrl</a
+        >
+      </h3>
+    </div>
+  </body>
+  <html></html>
+</html>
+`)
+  }
 
   @Get('/:code')
   @Redirect()
