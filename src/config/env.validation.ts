@@ -23,7 +23,7 @@ class EnvironmentVariables {
   PORT: number = 3000
 
   @IsString()
-  POSTGRES_URL: string
+  DB_URL: string
 
   @IsString()
   WEBSITE_URL: string

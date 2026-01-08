@@ -9,13 +9,14 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DeepPartial, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 
 import { CreatorInfo } from '../../types/auth'
 import generateShortCode from '../../utils/generate-short-code'
 import prepareUrl from '../../utils/prepare-url'
 import { RateLimitService } from '../rate-limit/rate-limit.service'
 import { CreateUrlDto } from './dto/create-url.dto'
+import { UrlResponseDto } from './dto/url-response.dto'
 import { Url } from './url.entity'
 
 @Injectable()
@@ -32,7 +33,9 @@ export class UrlService {
 
     const originalUrl = prepareUrl(body.url)
     const existing = await this.findByOriginalUrl(originalUrl)
-    if (existing) return this.toResponse(existing)
+    if (existing) {
+      return this.updateExistingUrl(creator, existing)
+    }
 
     const shortUrl = await this.generateUniqueShortUrl()
 
@@ -79,6 +82,18 @@ export class UrlService {
     return this.repo.find()
   }
 
+  private async findByOriginalUrl(originalUrl: string) {
+    return this.repo.findOne({ where: { originalUrl } })
+  }
+
+  private async findByShortUrl(shortUrl: string) {
+    return this.repo.findOne({ where: { shortUrl } })
+  }
+
+  private async findById(id: string) {
+    return this.repo.findOne({ where: { id } })
+  }
+
   private async checkRateLimit(creator: CreatorInfo) {
     const isAllowed = await this.rateLimitService.isAllowed(
       creator.userId ?? creator.ip ?? 'unknown',
@@ -90,16 +105,42 @@ export class UrlService {
     }
   }
 
-  private async findByOriginalUrl(originalUrl: string) {
-    return this.repo.findOne({ where: { originalUrl } })
+  private async updateExistingUrl(creator: CreatorInfo, existing: Url) {
+    let needsUpdate = false
+
+    if (!creator.userId && existing.expiresAt !== null) {
+      existing.expiresAt = () => "CURRENT_TIMESTAMP + INTERVAL '1 day'"
+      needsUpdate = true
+    } else if (!existing.userId || existing.expiresAt !== null) {
+      existing.expiresAt = null
+      existing.userId = creator.userId
+      needsUpdate = true
+    }
+
+    if (needsUpdate) {
+      await this.repo.save(existing)
+      await this.rateLimitService.createRecord(
+        creator.userId ?? creator.ip ?? 'unknown',
+        'create_url'
+      )
+
+      const updated = await this.findById(existing.id)
+      if (!updated) {
+        throw new NotFoundException('URL not found after update')
+      }
+
+      return this.toResponse(updated)
+    }
+
+    return this.toResponse(existing)
   }
 
-  private toResponse(url: Url): DeepPartial<Url> {
+  private toResponse(url: Url): UrlResponseDto {
     return {
       originalUrl: url.originalUrl,
       shortUrl: this.prepareShortUrl(url.shortUrl),
       expiresAt: url.expiresAt
-    }
+    } as UrlResponseDto
   }
 
   private async generateUniqueShortUrl() {
@@ -114,10 +155,6 @@ export class UrlService {
     } while (collision)
 
     return shortUrl
-  }
-
-  private async findByShortUrl(shortUrl: string) {
-    return this.repo.findOne({ where: { shortUrl } })
   }
 
   private async fetchCurrentTimestamp() {
