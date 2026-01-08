@@ -50,7 +50,7 @@ export class UrlController {
     <div class="m-3">
       <h1 class="text-2xl font-bold">URL Shortener</h1>
       <h3>
-        Хілоу, на жаль тут нічого не має. Подивіться краще ні мій
+        Хілоу, на жаль тут нічого не має. Подивіться краще на мій
         GitHub-профіль:
         <a href="https://shu-gamma.vercel.app/qxmC89z" class="text-blue-500"
           >https://shu-gamma.vercel.app/qxmC89z</a
